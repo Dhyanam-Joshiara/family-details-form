@@ -1,6 +1,6 @@
 /************************************
  * Family Details Form - script.js
- * Fixed and enhanced version
+ * Enhanced with mobile cards & married daughters
  ************************************/
 
 // ===== CONFIG =====
@@ -9,17 +9,15 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxGyDQ41u_vJOAEf7qYU3Eo
 // ===== GLOBAL VARIABLES =====
 let currentPage = 0;
 let pages, totalPages;
+let educationCounter = 0;
+let marriedDaughterCounter = 0;
 
 // ===== WAIT FOR DOM TO LOAD =====
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize variables after DOM is ready
   pages = document.querySelectorAll(".form-page");
   totalPages = pages.length;
   
-  // Initialize first page
   showPage(currentPage);
-  
-  // Setup event listeners
   setupEventListeners();
 });
 
@@ -27,21 +25,15 @@ document.addEventListener('DOMContentLoaded', function() {
 function showPage(index) {
   if (!pages || pages.length === 0) return;
   
-  // Remove active class from all pages
   pages.forEach(p => p.classList.remove("active"));
   
-  // Add active class to current page
   if (pages[index]) {
     pages[index].classList.add("active");
   }
   
-  // Update progress bar
   updateProgressBar(index);
-  
-  // Update step indicators
   updateStepIndicators(index);
   
-  // Scroll to top smoothly
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -100,7 +92,6 @@ function validateCurrentPage() {
       field.focus();
       showNotification("Please fill in all required fields marked with *", "error");
       
-      // Add shake animation to field
       field.style.animation = "shake 0.3s ease";
       setTimeout(() => {
         field.style.animation = "";
@@ -137,8 +128,14 @@ function setupEventListeners() {
   // Family members table generation
   const totalFamilyMembersInput = document.getElementById("total_family_members");
   if (totalFamilyMembersInput) {
-    totalFamilyMembersInput.addEventListener("change", generateFamilyTable);
-    totalFamilyMembersInput.addEventListener("input", generateFamilyTable);
+    totalFamilyMembersInput.addEventListener("change", generateFamilyCards);
+    totalFamilyMembersInput.addEventListener("input", generateFamilyCards);
+  }
+  
+  // Married daughters conditional display
+  const hasMarriedDaughtersSelect = document.getElementById("has_married_daughters");
+  if (hasMarriedDaughtersSelect) {
+    hasMarriedDaughtersSelect.addEventListener("change", handleMarriedDaughtersChange);
   }
   
   // Form submission
@@ -159,61 +156,103 @@ function setupEventListeners() {
   
   // Keyboard navigation
   document.addEventListener("keydown", function(e) {
-    // Alt + Right Arrow = Next
     if (e.altKey && e.key === "ArrowRight") {
       e.preventDefault();
       nextPage();
     }
     
-    // Alt + Left Arrow = Previous
     if (e.altKey && e.key === "ArrowLeft") {
       e.preventDefault();
       prevPage();
     }
   });
+  
+  // Handle "Other" option in dropdowns
+  setupConditionalSelects();
 }
 
-// ===== EDUCATION TABLE =====
+// ===== HANDLE "OTHER" OPTION IN DROPDOWNS =====
+function setupConditionalSelects() {
+  const conditionalSelects = document.querySelectorAll('.conditional-select');
+  
+  conditionalSelects.forEach(select => {
+    select.addEventListener('change', function() {
+      const otherId = this.id + '_other';
+      const otherInput = document.getElementById(otherId);
+      
+      if (otherInput) {
+        if (this.value === 'Other') {
+          otherInput.style.display = 'block';
+          otherInput.focus();
+        } else {
+          otherInput.style.display = 'none';
+          otherInput.value = '';
+        }
+      }
+    });
+  });
+}
+
+// ===== EDUCATION CARDS (MOBILE-FRIENDLY) =====
 function addEducationRow() {
-  const tbody = document.querySelector("#educationTable tbody");
-  if (!tbody) return;
+  const container = document.getElementById("educationContainer");
+  if (!container) return;
   
-  const row = document.createElement("tr");
+  educationCounter++;
   
-  row.innerHTML = `
-    <td><input type="text" placeholder="2020" /></td>
-    <td><input type="text" placeholder="B.Tech" /></td>
-    <td><input type="text" placeholder="University Name" /></td>
-    <td><input type="text" placeholder="85%" /></td>
-    <td style="text-align: center;"><button type="button" class="remove-btn" title="Remove">×</button></td>
+  const card = document.createElement("div");
+  card.className = "mobile-card";
+  card.setAttribute('data-id', educationCounter);
+  
+  card.innerHTML = `
+    <div class="mobile-card-header">
+      <div class="mobile-card-title">Education #${educationCounter}</div>
+      <button type="button" class="mobile-card-remove" onclick="removeEducationCard(${educationCounter})" title="Remove">×</button>
+    </div>
+    <div class="mobile-card-body">
+      <div class="mobile-card-field">
+        <label>Year of Completion</label>
+        <input type="text" placeholder="e.g., 2020" class="education-year">
+      </div>
+      <div class="mobile-card-field">
+        <label>Degree / Qualification</label>
+        <input type="text" placeholder="e.g., B.Tech, HSC, MBA" class="education-degree">
+      </div>
+      <div class="mobile-card-field">
+        <label>Institution / University</label>
+        <input type="text" placeholder="e.g., ABC University" class="education-institution">
+      </div>
+      <div class="mobile-card-field">
+        <label>Percentage / Grade</label>
+        <input type="text" placeholder="e.g., 85%, A Grade" class="education-percentage">
+      </div>
+    </div>
   `;
   
-  // Add fade-in animation
-  row.style.opacity = "0";
-  tbody.appendChild(row);
+  card.style.opacity = "0";
+  container.appendChild(card);
   
   setTimeout(() => {
-    row.style.transition = "opacity 0.3s ease";
-    row.style.opacity = "1";
+    card.style.transition = "opacity 0.3s ease";
+    card.style.opacity = "1";
   }, 10);
-  
-  // Remove row on button click
-  const removeBtn = row.querySelector("button");
-  if (removeBtn) {
-    removeBtn.onclick = function() {
-      row.style.opacity = "0";
-      setTimeout(() => row.remove(), 300);
-    };
+}
+
+function removeEducationCard(id) {
+  const card = document.querySelector(`[data-id="${id}"]`);
+  if (card) {
+    card.style.opacity = "0";
+    setTimeout(() => card.remove(), 300);
   }
 }
 
-// ===== FAMILY MEMBERS TABLE =====
-function generateFamilyTable(e) {
+// ===== FAMILY MEMBERS CARDS (MOBILE-FRIENDLY) =====
+function generateFamilyCards(e) {
   const count = parseInt(e.target.value || 0);
-  const tbody = document.querySelector("#familyTable tbody");
+  const container = document.getElementById("familyContainer");
   const hint = document.getElementById("familyTableHint");
   
-  if (!tbody) return;
+  if (!container) return;
   
   if (count < 1 || count > 20 || isNaN(count)) {
     if (count > 0) {
@@ -222,128 +261,295 @@ function generateFamilyTable(e) {
     return;
   }
   
-  // Clear existing rows
-  tbody.innerHTML = "";
+  container.innerHTML = "";
   
-  // Hide hint when table is generated
   if (hint) {
     hint.style.display = "none";
   }
   
-  // Generate rows
   for (let i = 0; i < count; i++) {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td><input type="text" placeholder="Full Name" /></td>
-      <td>
-        <select>
-          <option value="">Select</option>
-          <option value="Self">Self</option>
-          <option value="Spouse">Spouse</option>
-          <option value="Son">Son</option>
-          <option value="Daughter">Daughter</option>
-          <option value="Father">Father</option>
-          <option value="Mother">Mother</option>
-          <option value="Brother">Brother</option>
-          <option value="Sister">Sister</option>
-          <option value="Other">Other</option>
-        </select>
-      </td>
-      <td>
-        <select>
-          <option value="">Select</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
-      </td>
-      <td><input type="date" /></td>
-      <td><input type="text" placeholder="Qualification" /></td>
-      <td><input type="text" placeholder="Occupation" /></td>
-      <td>
-        <select>
-          <option value="">Select</option>
-          <option value="Single">Single</option>
-          <option value="Married">Married</option>
-        </select>
-      </td>
+    const card = document.createElement("div");
+    card.className = "mobile-card";
+    
+    card.innerHTML = `
+      <div class="mobile-card-header">
+        <div class="mobile-card-title">Family Member #${i + 1}</div>
+      </div>
+      <div class="mobile-card-body">
+        <div class="mobile-card-field">
+          <label>Full Name</label>
+          <input type="text" placeholder="Enter full name" class="family-name">
+        </div>
+        <div class="mobile-card-field">
+          <label>Relation</label>
+          <select class="family-relation conditional-select-inline">
+            <option value="">Select Relation</option>
+            <option value="Self">Self</option>
+            <option value="Spouse">Spouse</option>
+            <option value="Son">Son</option>
+            <option value="Daughter">Daughter</option>
+            <option value="Father">Father</option>
+            <option value="Mother">Mother</option>
+            <option value="Brother">Brother</option>
+            <option value="Sister">Sister</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="text" class="other-input relation-other" placeholder="Please specify" style="display: none; margin-top: 0.5rem;">
+        </div>
+        <div class="mobile-card-field">
+          <label>Gender</label>
+          <select class="family-gender conditional-select-inline">
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="text" class="other-input gender-other" placeholder="Please specify" style="display: none; margin-top: 0.5rem;">
+        </div>
+        <div class="mobile-card-field">
+          <label>Date of Birth</label>
+          <input type="date" class="family-dob">
+        </div>
+        <div class="mobile-card-field">
+          <label>Education / Qualification</label>
+          <input type="text" placeholder="e.g., Graduate, HSC" class="family-education">
+        </div>
+        <div class="mobile-card-field">
+          <label>Occupation</label>
+          <input type="text" placeholder="e.g., Teacher, Student" class="family-occupation">
+        </div>
+        <div class="mobile-card-field">
+          <label>Marital Status</label>
+          <select class="family-marital">
+            <option value="">Select Status</option>
+            <option value="Single">Single</option>
+            <option value="Married">Married</option>
+          </select>
+        </div>
+      </div>
     `;
     
-    // Add staggered animation
-    row.style.opacity = "0";
-    tbody.appendChild(row);
+    card.style.opacity = "0";
+    container.appendChild(card);
     
     setTimeout(() => {
-      row.style.transition = "opacity 0.3s ease";
-      row.style.opacity = "1";
+      card.style.transition = "opacity 0.3s ease";
+      card.style.opacity = "1";
     }, i * 50);
   }
   
-  showNotification(`${count} family member row(s) generated`, "info");
+  // Setup conditional selects for dynamically added cards
+  setupDynamicConditionalSelects();
+  
+  showNotification(`${count} family member card(s) generated`, "info");
+}
+
+// ===== HANDLE CONDITIONAL SELECTS IN DYNAMIC CARDS =====
+function setupDynamicConditionalSelects() {
+  const conditionalSelects = document.querySelectorAll('.conditional-select-inline');
+  
+  conditionalSelects.forEach(select => {
+    select.addEventListener('change', function() {
+      const parent = this.closest('.mobile-card-field');
+      const otherInput = parent.querySelector('.other-input');
+      
+      if (otherInput) {
+        if (this.value === 'Other') {
+          otherInput.style.display = 'block';
+          otherInput.focus();
+        } else {
+          otherInput.style.display = 'none';
+          otherInput.value = '';
+        }
+      }
+    });
+  });
+}
+
+// ===== MARRIED DAUGHTERS SECTION =====
+function handleMarriedDaughtersChange(e) {
+  const section = document.getElementById("marriedDaughtersSection");
+  const container = document.getElementById("marriedDaughtersContainer");
+  
+  if (!section || !container) return;
+  
+  if (e.target.value === "Yes") {
+    section.style.display = "block";
+    // Add one row automatically
+    if (container.children.length === 0) {
+      addMarriedDaughterRow();
+    }
+  } else {
+    section.style.display = "none";
+    // Clear all data
+    container.innerHTML = "";
+    marriedDaughterCounter = 0;
+  }
+}
+
+function addMarriedDaughterRow() {
+  const container = document.getElementById("marriedDaughtersContainer");
+  if (!container) return;
+  
+  marriedDaughterCounter++;
+  
+  const card = document.createElement("div");
+  card.className = "mobile-card";
+  card.setAttribute('data-daughter-id', marriedDaughterCounter);
+  
+  card.innerHTML = `
+    <div class="mobile-card-header">
+      <div class="mobile-card-title">Married Daughter #${marriedDaughterCounter}</div>
+      <button type="button" class="mobile-card-remove" onclick="removeMarriedDaughterCard(${marriedDaughterCounter})" title="Remove">×</button>
+    </div>
+    <div class="mobile-card-body">
+      <div class="mobile-card-field">
+        <label>Daughter's Name</label>
+        <input type="text" placeholder="Full name of daughter" class="daughter-name">
+      </div>
+      <div class="mobile-card-field">
+        <label>Husband's Name</label>
+        <input type="text" placeholder="Full name of husband" class="husband-name">
+      </div>
+      <div class="mobile-card-field">
+        <label>Current City / Country</label>
+        <input type="text" placeholder="e.g., Mumbai, India" class="daughter-city">
+      </div>
+      <div class="mobile-card-field">
+        <label>Contact Number</label>
+        <input type="tel" placeholder="+91 XXXXX XXXXX" class="daughter-contact">
+      </div>
+    </div>
+  `;
+  
+  card.style.opacity = "0";
+  container.appendChild(card);
+  
+  setTimeout(() => {
+    card.style.transition = "opacity 0.3s ease";
+    card.style.opacity = "1";
+  }, 10);
+}
+
+function removeMarriedDaughterCard(id) {
+  const card = document.querySelector(`[data-daughter-id="${id}"]`);
+  if (card) {
+    card.style.opacity = "0";
+    setTimeout(() => card.remove(), 300);
+  }
+}
+
+// ===== COLLECT FORM DATA =====
+function collectEducationData() {
+  const cards = document.querySelectorAll("#educationContainer .mobile-card");
+  const education = [];
+  
+  cards.forEach(card => {
+    education.push({
+      year: card.querySelector(".education-year").value || "",
+      degree: card.querySelector(".education-degree").value || "",
+      institution: card.querySelector(".education-institution").value || "",
+      percentage: card.querySelector(".education-percentage").value || ""
+    });
+  });
+  
+  return education;
+}
+
+function collectFamilyData() {
+  const cards = document.querySelectorAll("#familyContainer .mobile-card");
+  const family = [];
+  
+  cards.forEach(card => {
+    const relationSelect = card.querySelector(".family-relation");
+    const relationOther = card.querySelector(".relation-other");
+    const genderSelect = card.querySelector(".family-gender");
+    const genderOther = card.querySelector(".gender-other");
+    
+    family.push({
+      name: card.querySelector(".family-name").value || "",
+      relation: relationSelect.value === "Other" ? relationOther.value : relationSelect.value,
+      gender: genderSelect.value === "Other" ? genderOther.value : genderSelect.value,
+      dob: card.querySelector(".family-dob").value || "",
+      education: card.querySelector(".family-education").value || "",
+      occupation: card.querySelector(".family-occupation").value || "",
+      marital_status: card.querySelector(".family-marital").value || ""
+    });
+  });
+  
+  return family;
+}
+
+function collectMarriedDaughtersData() {
+  const cards = document.querySelectorAll("#marriedDaughtersContainer .mobile-card");
+  const daughters = [];
+  
+  cards.forEach(card => {
+    daughters.push({
+      daughter_name: card.querySelector(".daughter-name").value || "",
+      husband_name: card.querySelector(".husband-name").value || "",
+      city: card.querySelector(".daughter-city").value || "",
+      contact: card.querySelector(".daughter-contact").value || ""
+    });
+  });
+  
+  return daughters;
 }
 
 // ===== FORM SUBMISSION =====
 async function handleFormSubmit(e) {
   e.preventDefault();
   
-  // Show loading overlay
   showLoading(true);
   
   try {
-    // ---- Education Data ----
-    const educationRows = document.querySelectorAll("#educationTable tbody tr");
-    const education = Array.from(educationRows).map(r => ({
-      year: r.children[0].querySelector("input").value || "",
-      degree: r.children[1].querySelector("input").value || "",
-      institution: r.children[2].querySelector("input").value || "",
-      percentage: r.children[3].querySelector("input").value || ""
-    }));
+    const education = collectEducationData();
+    const family = collectFamilyData();
+    const marriedDaughters = collectMarriedDaughtersData();
     
-    // ---- Family Members Data ----
-    const familyRows = document.querySelectorAll("#familyTable tbody tr");
-    const family = Array.from(familyRows).map(r => ({
-      name: r.children[0].querySelector("input").value || "",
-      relation: r.children[1].querySelector("select").value || "",
-      gender: r.children[2].querySelector("select").value || "",
-      dob: r.children[3].querySelector("input").value || "",
-      education: r.children[4].querySelector("input").value || "",
-      occupation: r.children[5].querySelector("input").value || "",
-      marital_status: r.children[6].querySelector("select").value || ""
-    }));
+    // Get values from "Other" fields
+    const genderSelect = document.getElementById("gender");
+    const genderOther = document.getElementById("gender_other");
+    const bloodGroupSelect = document.getElementById("blood_group");
+    const bloodGroupOther = document.getElementById("blood_group_other");
+    const highestEducationSelect = document.getElementById("highest_education");
+    const highestEducationOther = document.getElementById("highest_education_other");
+    const occupationStatusSelect = document.getElementById("occupation_status");
+    const occupationStatusOther = document.getElementById("occupation_status_other");
     
-    // ---- Payload ----
     const payload = {
       family_head_name: document.getElementById("family_head_name").value || "",
-      gender: document.getElementById("gender").value || "",
+      gender: genderSelect.value === "Other" ? genderOther.value : genderSelect.value,
       dob: document.getElementById("dob").value || "",
       place_of_birth: document.getElementById("place_of_birth").value || "",
-      blood_group: document.getElementById("blood_group").value || "",
+      blood_group: bloodGroupSelect.value === "Other" ? bloodGroupOther.value : bloodGroupSelect.value,
       address: document.getElementById("address").value || "",
       mobile_number: document.getElementById("mobile_number").value || "",
       whatsapp_number: document.getElementById("whatsapp_number").value || "",
       hobbies: document.getElementById("hobbies").value || "",
       
-      highest_education: document.getElementById("highest_education").value || "",
-      occupation_status: document.getElementById("occupation_status").value || "",
+      highest_education: highestEducationSelect.value === "Other" ? highestEducationOther.value : highestEducationSelect.value,
+      occupation_status: occupationStatusSelect.value === "Other" ? occupationStatusOther.value : occupationStatusSelect.value,
       designation_org: document.getElementById("designation_org").value || "",
       work_location: document.getElementById("work_location").value || "",
       skills_achievements: document.getElementById("skills_achievements").value || "",
       
       total_family_members: document.getElementById("total_family_members").value || "",
+      has_married_daughters: document.getElementById("has_married_daughters").value || "",
       expectations: document.getElementById("expectations").value || "",
       emergency_contact_name: document.getElementById("emergency_contact_name").value || "",
       emergency_contact_number: document.getElementById("emergency_contact_number").value || "",
       
       education_history: education,
-      family_members: family
+      family_members: family,
+      married_daughters: marriedDaughters
     };
     
     console.log("Submitting payload:", payload);
     
-    // ---- Submit ----
     const res = await fetch(API_URL, {
       method: "POST",
-      mode: "no-cors", // Google Apps Script requires no-cors
+      mode: "no-cors",
       headers: {
         "Content-Type": "application/json",
       },
@@ -352,18 +558,21 @@ async function handleFormSubmit(e) {
     
     showLoading(false);
     
-    // With no-cors, we can't read the response, so we assume success
     showNotification("Form submitted successfully! Thank you for your submission.", "success");
     
-    // Reset form after 3 seconds
     setTimeout(() => {
       if (confirm("Form submitted! Would you like to submit another response?")) {
         location.reload();
       } else {
-        // Just reset to first page
         currentPage = 0;
         showPage(currentPage);
         document.getElementById("familyForm").reset();
+        document.getElementById("educationContainer").innerHTML = "";
+        document.getElementById("familyContainer").innerHTML = "";
+        document.getElementById("marriedDaughtersContainer").innerHTML = "";
+        document.getElementById("marriedDaughtersSection").style.display = "none";
+        educationCounter = 0;
+        marriedDaughterCounter = 0;
       }
     }, 2000);
     
@@ -387,12 +596,10 @@ function showLoading(show) {
 }
 
 function showNotification(message, type = "info") {
-  // Create notification element
   const notification = document.createElement("div");
   notification.className = `notification notification-${type}`;
   notification.textContent = message;
   
-  // Style the notification
   Object.assign(notification.style, {
     position: "fixed",
     top: "20px",
@@ -408,7 +615,6 @@ function showNotification(message, type = "info") {
     fontSize: "0.95rem"
   });
   
-  // Set background color based on type
   if (type === "success") {
     notification.style.background = "#10b981";
   } else if (type === "error") {
@@ -419,25 +625,13 @@ function showNotification(message, type = "info") {
   
   document.body.appendChild(notification);
   
-  // Remove after 4 seconds
   setTimeout(() => {
     notification.style.animation = "slideOutRight 0.3s ease";
     setTimeout(() => notification.remove(), 300);
   }, 4000);
 }
 
-// ===== ADD SHAKE ANIMATION =====
-const style = document.createElement("style");
-style.textContent = `
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
-  }
-`;
-document.head.appendChild(style);
-
 // ===== CONSOLE MESSAGE =====
 console.log("%cFamily Details Form", "color: #6366f1; font-size: 24px; font-weight: bold;");
 console.log("%cForm loaded successfully!", "color: #10b981; font-size: 14px;");
-console.log("%cVersion: 2.0 | Enhanced Edition", "color: #64748b; font-size: 12px;");
+console.log("%cVersion: 3.0 | Mobile-Optimized Edition", "color: #64748b; font-size: 12px;");
