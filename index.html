@@ -61,12 +61,13 @@
 
           <div class="form-group">
             <label for="gender">Gender <span class="required">*</span></label>
-            <select id="gender" name="gender" required>
+            <select id="gender" name="gender" required class="conditional-select">
               <option value="">Select Gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
+            <input type="text" id="gender_other" class="other-input" placeholder="Please specify" style="display: none; margin-top: 0.5rem;">
           </div>
 
           <div class="form-group">
@@ -81,7 +82,7 @@
 
           <div class="form-group">
             <label for="blood_group">Blood Group</label>
-            <select id="blood_group" name="blood_group">
+            <select id="blood_group" name="blood_group" class="conditional-select">
               <option value="">Select Blood Group</option>
               <option value="A+">A+</option>
               <option value="A-">A-</option>
@@ -91,7 +92,9 @@
               <option value="O-">O-</option>
               <option value="AB+">AB+</option>
               <option value="AB-">AB-</option>
+              <option value="Other">Other</option>
             </select>
+            <input type="text" id="blood_group_other" class="other-input" placeholder="Please specify" style="display: none; margin-top: 0.5rem;">
           </div>
 
           <div class="form-group full-width">
@@ -137,7 +140,7 @@
         <div class="form-grid">
           <div class="form-group">
             <label for="highest_education">Highest Educational Qualification</label>
-            <select id="highest_education" name="highest_education">
+            <select id="highest_education" name="highest_education" class="conditional-select">
               <option value="">Select Qualification</option>
               <option value="SSC">SSC</option>
               <option value="HSC">HSC</option>
@@ -147,11 +150,12 @@
               <option value="Doctorate">Doctorate</option>
               <option value="Other">Other</option>
             </select>
+            <input type="text" id="highest_education_other" class="other-input" placeholder="Please specify" style="display: none; margin-top: 0.5rem;">
           </div>
 
           <div class="form-group">
             <label for="occupation_status">Current Occupation Status</label>
-            <select id="occupation_status" name="occupation_status">
+            <select id="occupation_status" name="occupation_status" class="conditional-select">
               <option value="">Select Status</option>
               <option value="Job">Job</option>
               <option value="Business">Business</option>
@@ -159,7 +163,9 @@
               <option value="Retired">Retired</option>
               <option value="Homemaker">Homemaker</option>
               <option value="Student">Student</option>
+              <option value="Other">Other</option>
             </select>
+            <input type="text" id="occupation_status_other" class="other-input" placeholder="Please specify" style="display: none; margin-top: 0.5rem;">
           </div>
 
           <div class="form-group">
@@ -188,20 +194,11 @@
             </button>
           </div>
           
-          <div class="table-responsive">
-            <table id="educationTable">
-              <thead>
-                <tr>
-                  <th>Year</th>
-                  <th>Degree</th>
-                  <th>Institution</th>
-                  <th>% / Grade</th>
-                  <th width="60"></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+          <!-- Mobile-Friendly Card Layout for Education -->
+          <div id="educationContainer" class="mobile-cards-container">
+            <!-- Cards will be added here dynamically -->
           </div>
+          
           <p class="table-hint">Click "Add Education" to add your educational qualifications</p>
         </div>
 
@@ -230,23 +227,41 @@
         <div class="section-divider"></div>
 
         <div class="table-section">
-          <div class="table-responsive">
-            <table id="familyTable">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Relation</th>
-                  <th>Gender</th>
-                  <th>Date of Birth</th>
-                  <th>Education</th>
-                  <th>Occupation</th>
-                  <th>Marital Status</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+          <!-- Mobile-Friendly Card Layout for Family Members -->
+          <div id="familyContainer" class="mobile-cards-container">
+            <!-- Cards will be generated based on total_family_members -->
           </div>
-          <p class="table-hint" id="familyTableHint">Enter the number of family members above to generate the table</p>
+          <p class="table-hint" id="familyTableHint">Enter the number of family members above to generate the form</p>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Married Daughters Section -->
+        <div class="form-group" style="max-width: 600px;">
+          <label for="has_married_daughters">Do you have married daughters? <span class="required">*</span></label>
+          <select id="has_married_daughters" name="has_married_daughters" required>
+            <option value="">Select</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+
+        <!-- Married Daughters Table (Hidden by default) -->
+        <div id="marriedDaughtersSection" style="display: none;">
+          <div class="section-divider"></div>
+          
+          <div class="table-section">
+            <div class="table-header">
+              <h3>Details of Married Daughters and In-laws</h3>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addMarriedDaughterRow()">
+                + Add Daughter
+              </button>
+            </div>
+            
+            <div id="marriedDaughtersContainer" class="mobile-cards-container">
+              <!-- Cards will be added here dynamically -->
+            </div>
+          </div>
         </div>
 
         <div class="form-actions">
