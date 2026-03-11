@@ -96,6 +96,8 @@ const i18n = {
     husband_name: "Husband's Name",
     daughter_city: "Current City / Country",
     daughter_contact: "Contact Number",
+    label_degree: "Degree / Field of Study",
+    ph_degree: "e.g. MBA, M.Tech, B.Tech, B.Com, B.Sc",
     err_required: "Please fill in all required fields marked with *",
     cards_generated: "family member card(s) generated",
     confirm_regenerate: "Regenerating will clear existing family data. Continue?",
@@ -188,6 +190,8 @@ const i18n = {
     husband_name: "પતિનું નામ",
     daughter_city: "વર્તમાન શહેર / દેશ",
     daughter_contact: "સંપર્ક નંબર",
+    label_degree: "ડિગ્રી / અભ્યાસ ક્ષેત્ર",
+    ph_degree: "દા.ત. MBA, M.Tech, B.Tech, B.Com, B.Sc",
     err_required: "કૃપા કરીને * ચિહ્નિત તમામ ફરજિયાત ક્ષેત્રો ભરો",
     cards_generated: "કુટુંબ સભ્ય કાર્ડ(ઓ) બનાવવામાં આવ્યા",
     confirm_regenerate: "ફરીથી બનાવવાથી હાલની કૌટુંબિક ડેટા સાફ થઈ જશે. ચાલુ રાખો?",
@@ -280,6 +284,8 @@ const i18n = {
     husband_name: "पति का नाम",
     daughter_city: "वर्तमान शहर / देश",
     daughter_contact: "संपर्क नंबर",
+    label_degree: "डिग्री / अध्ययन क्षेत्र",
+    ph_degree: "जैसे MBA, M.Tech, B.Tech, B.Com, B.Sc",
     err_required: "कृपया * से चिह्नित सभी आवश्यक फ़ील्ड भरें",
     cards_generated: "परिवार सदस्य कार्ड बनाए गए",
     confirm_regenerate: "पुनः बनाने से मौजूदा पारिवारिक डेटा साफ हो जाएगा। जारी रखें?",
@@ -659,11 +665,15 @@ function buildEducationTab(num) {
       </div>
       <div class="na-fields-wrapper" id="edu-fields-${num}">
         <div class="mini-grid">
-          <div class="form-group full">
+          <div class="form-group">
             <label>${t("label_highest_edu")}</label>
             <select class="m-education">
               ${eduOptions}
             </select>
+          </div>
+          <div class="form-group">
+            <label>${t("label_degree")}</label>
+            <input type="text" class="m-degree" placeholder="${t("ph_degree")}">
           </div>
           <div class="form-group">
             <label>Institution / School / University</label>
@@ -909,6 +919,7 @@ function collectFamilyData() {
       marital_status: card.querySelector(".m-marital")?.value || "",
       education_na: naEdu,
       highest_education: naEdu ? "N/A" : (card.querySelector(".m-education")?.value || ""),
+      degree: naEdu ? "" : (card.querySelector(".m-degree")?.value || ""),
       institution: naEdu ? "" : (card.querySelector(".m-institution")?.value || ""),
       edu_year: naEdu ? "" : (card.querySelector(".m-edu-year")?.value || ""),
       extra_education: naEdu ? "" : (card.querySelector(".m-extra-edu")?.value || ""),
